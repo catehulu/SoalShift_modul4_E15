@@ -11,8 +11,8 @@
 #include <pwd.h>
 #include <grp.h>
 
-// static const char *dirpath = "/home/catehulu/Desktop/sisop/soalshit_modul4/realfolder";
-static const char *dirpath = "/home/catehulu/shift4";
+static const char *dirpath = "/home/catehulu/Desktop/sisop/soalshit_modul4/realfolder";
+// static const char *dirpath = "/home/catehulu/shift4";
 //--------------------FUNGSI BUATAN------------------------
 void decrypt(char* answer){
     char *chiper="qE1~ YMUR2\"`hNIdPzi\%^t@(Ao:=CQ,nx4S[7mHFye#aT6+v)DfKL$r?bkOGB>}!9_wV']jcp5JZ&Xl|\\8s;g<{3.u*W-0";
@@ -66,7 +66,7 @@ int check_files(const char *fpath,const char *filename){
 					printf("\n%s\n\n",fpath);
 					char output_path[1000];
 					char filemiris[] = "filemiris.txt";
-					encrypt(filemiris);
+					// encrypt(filemiris);
 					sprintf(output_path,"%s/%s",dirpath,filemiris);
 					FILE *output = fopen(output_path,"a");
 					fprintf(output,"----------\n");
@@ -87,15 +87,11 @@ int check_files(const char *fpath,const char *filename){
 
 static int xmp_getattr(const char *path, struct stat *stbuf)
 {
-    int res;
+  	int res;
 	char fpath[1000];
-	char newname[1000];
-	strcpy(newname,path);
-    encrypt(newname);
-	sprintf(fpath,"%s%s",dirpath,newname);
-	
-    // printf("\n get attr %s \n\n",fpath);
-	
+	encrypt(path);
+	sprintf(fpath,"%s%s",dirpath,path);
+	decrypt(path);
 	res = lstat(fpath, stbuf);
 
 	if (res == -1)
@@ -195,6 +191,7 @@ static int xmp_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 	}
 	encrypt(path);
 	sprintf(fpath, "%s%s",dirpath,path);
+	decrypt(path);
 	fd = open(fpath, fi->flags, mode);
 	if (fd == -1)
 		return -errno;
@@ -241,7 +238,9 @@ static int xmp_mknod(const char *path, mode_t mode, dev_t rdev)
 	int res;
 	char fpath[1000];
 	char realname[1000];
+	encrypt(path);
 	sprintf(fpath, "%s%s",dirpath,path);
+	decrypt(path);
 
 	if (S_ISFIFO(mode))
 		res = mkfifo(fpath, mode);
@@ -259,7 +258,9 @@ static int xmp_utimens(const char *path, const struct timespec ts[2])
 	struct timeval tv[2];
 	char fpath[1000];
 	char realname[1000];
+	encrypt(path);
 	sprintf(fpath, "%s%s",dirpath,path);
+	decrypt(path);
 
 	tv[0].tv_sec = ts[0].tv_sec;
 	tv[0].tv_usec = ts[0].tv_nsec / 1000;
@@ -283,6 +284,7 @@ static int xmp_mkdir(const char *path, mode_t mode)
 	}
 	encrypt(path);
 	sprintf(fpath, "%s%s",dirpath,path);
+	decrypt(path);
 
 	// printf("\n makedir %s \n\n",fpath);
 
@@ -319,7 +321,7 @@ static int xmp_chmod(const char *path, mode_t mode)
 	
 	encrypt(path);
 	sprintf(fpath, "%s%s",dirpath,path);
-
+	decrypt(path);
 	res = chmod(fpath, mode);
 	if (res == -1)
 		return -errno;
