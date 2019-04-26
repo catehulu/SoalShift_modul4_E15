@@ -428,9 +428,49 @@ static int xmp_unlink(const char *path)
     encrypt(temp);
     check_path(fpath, temp);
 
+    char a[100];
+    strcpy(a, strrchr(path, '.'));
+
+    if(strcmp(a, ".swp")!=0)
+    {
+        char tanggal[30];
+        time_t waktuku;
+        struct tm *t;
+        time(&t1);
+        t = localtime(&t1);
+        sprintf(tanggal, "_deleted_%d-%d%d-%d%d_%d%d:%d%d:%d%d", t->tm_year+1900, (t->tm_mon+1)/10, (t->tm_mon+1)%10, t->tm_mday/10, t->tm_mday%10, t->tm_hour/10, t->tm_hour%10, t->tm_min/10, t->tm_min%10, t->tm_sec/10, t->tm_sec%10);
+        encrypt(tanggal);
+
+        char nama[1000];
+        strcat(nama, strrchr(path, '/')+2);
+        encrypt(nama);
+        strcat(nama, "*");
+
+        char namazip[100],path_zip[1000];
+        strncpy(namazip, path, strlen(path)-strlen(a));
+        encrypt(namazip);
+
+        sprintf(path_zip, "%s%s%s", path_to_recycle_bin, namazip, tanggal);
+
+        pid_t zip;
+        int status;
+        zip=fork();
+
+        if(zip==0)
+        {
+            char *agr[]={"zip", path_zip, nama};
+            execv("/usr/bin/zip", arg);
+        }
+        else
+        {
+            while((wait(&status))>0);
+        }
+        
+    }
+
 	int res;
 
-	res = unlink(path);
+	res = unlink(fpath);
 	if (res == -1)
 		return -errno;
 
