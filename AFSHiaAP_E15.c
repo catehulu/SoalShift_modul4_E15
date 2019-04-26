@@ -285,37 +285,44 @@ static int xmp_write(const char *path, const char *buf, size_t size,
 {
 	char fpath[1000];
     char temp[1000];
-    char namafile[1000];
-    char path_copy[1000];
     strcpy(temp, path);
     encrypt(temp);
     check_path(fpath, temp);
-
-    char tanggal[30];
-    // Untuk timestamp untuk nama file copy
-    time_t t1;
-    struct tm *t;
-    time(&t1);
-    t = localtime(&t1);
-    sprintf(tanggal, "_%d-%d%d-%d%d_%d%d:%d%d:%d%d", t->tm_year+1900, (t->tm_mon+1)/10, (t->tm_mon+1)%10, t->tm_mday/10, t->tm_mday%10, t->tm_hour/10, t->tm_hour%10, t->tm_min/10, t->tm_min%10, t->tm_sec/10, t->tm_sec%10);
-    encrypt(tanggal);
-
-    char *ptr=strrchr(fpath, '/');
-    char *pch=strrchr(ptr, '.');
-
+    
     int fd;
 	int res;
 
 	(void) fi;
-	fd = open(path, O_WRONLY);
+	fd = open(fpath, O_WRONLY);
 	if (fd == -1)
 		return -errno;
 
 	res = pwrite(fd, buf, size, offset);
+    close(fd);
 	if (res == -1)
 		res = -errno;
+    else if(res > 0)
+    {
+        mkdir(path_to_backup,  0775);
 
-	close(fd);
+        char tanggal[30];
+        time_t waktuku;
+        struct tm *t;
+        time(&t1);
+        t = localtime(&t1);
+        sprintf(tanggal, "_%d-%d%d-%d%d_%d%d:%d%d:%d%d", t->tm_year+1900, (t->tm_mon+1)/10, (t->tm_mon+1)%10, t->tm_mday/10, t->tm_mday%10, t->tm_hour/10, t->tm_hour%10, t->tm_min/10, t->tm_min%10, t->tm_sec/10, t->tm_sec%10);
+        char eks_file[10];
+        strcpy(eks_file, strrchr(nama, '.'));
+
+        sprintf(namafile, "/%s%s", nama, tanggal);
+        if(eks_file[0]!=NULL) strcat(namafile, eks_file);
+
+        encrypt(namafile);
+
+        sprintf(path_copy, "%s%s", path_to_backup, namafile);
+
+        copy(fpath, path_copy);
+    }
     return res; 
 }
 
