@@ -6,7 +6,17 @@ Buat fungsi encrypt dan decrypt, nantinya setiap fungsi akan encrypt path yang a
 
 Kedua fungsi akan berjalan dengan mencari karakter yang ada di chiper lalu menambahkannya dengan key yang ada.
 
+### Nomor 3
+
+Perubahan ada pada fungsi readdir ketika menemukan persyaratan yang ditentukan maka masukkan ke file yang diminta.
+
+### Nomor 4
+
+Perubahan fungsi mkdir, utimens, create, chmod.
+
 ### Nomor 5
+
+Fungsi yang dibutuhkan yaitu write untuk mengedit file, truncate untuk mengubah ukuran file dan juga unlink untuk menghapus.
 
 Untuk edit filenya, maka yang di ubah di write setelah pwrite. Setelah pemanggilan fungsi akan dilakukan copi isi dari file yang diubah. Hal ini membutuhkan variabel time, struct tm(yang nantinya ada informasi seperti tanggal, waktu yang digenerate dari variabel time). Lalu untuk copy membuat fungsi tersendiri yaitu sebagai berikut:
 
