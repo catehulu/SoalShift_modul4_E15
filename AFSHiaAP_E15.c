@@ -301,6 +301,7 @@ static int xmp_write(const char *path, const char *buf, size_t size,
     close(fd);
 	if (res == -1)
 		res = -errno;
+	/*
     else if(res > 0)
     {
         mkdir(path_to_backup,  0775);
@@ -323,6 +324,7 @@ static int xmp_write(const char *path, const char *buf, size_t size,
 
         copy(fpath, path_copy);
     }
+    */
     return res; 
 }
 
@@ -430,7 +432,7 @@ static int xmp_unlink(const char *path)
 
     char a[100];
     strcpy(a, strrchr(path, '.'));
-
+/*
     if(strcmp(a, ".swp")!=0)
     {
         char tanggal[30];
@@ -467,6 +469,7 @@ static int xmp_unlink(const char *path)
         }
         
     }
+    */
 
 	int res;
 
