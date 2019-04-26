@@ -42,3 +42,4 @@ void copy(char *source, char *dest)
 }
 ```
 
+Untuk zip, ada pengecualian jika ekstensi adalah .swp maka abaikan. Jika ya, maka ambil nama file yang dihapus. Lakukan lakukan zip dengan nama file*.
