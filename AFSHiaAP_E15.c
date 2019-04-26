@@ -1,21 +1,31 @@
 #define FUSE_USE_VERSION 28
-#include <fuse.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <dirent.h>
-#include <errno.h>
-#include <sys/time.h>
-#include <pwd.h>
-#include <grp.h>
+#include<fuse.h>
+#include<stdio.h>
+#include<string.h>
+#include<stdlib.h>
+#include<unistd.h>
+#include<fcntl.h>
+#include<dirent.h>
+#include<time.h>
+#include<errno.h>
+#include<sys/time.h>
+#include<sys/stat.h>
+#include<pwd.h>
+#include<grp.h>
 
 static const char *dirpath = "/home/catehulu/Desktop/sisop/soalshit_modul4/realfolder";
+char *path_to_backup="/home/catehulu/Desktop/sisop/soalshit_modul4/realfolder/XB.Jhu";
+char *path_to_recycle_bin="/home/catehulu/Desktop/sisop/soalshit_modul4/realfolder/oO.k.EOX[)";
 // static const char *dirpath = "/home/catehulu/shift4";
-//--------------------FUNGSI BUATAN------------------------
-void decrypt(char* answer){
-    char *chiper="qE1~ YMUR2\"`hNIdPzi\%^t@(Ao:=CQ,nx4S[7mHFye#aT6+v)DfKL$r?bkOGB>}!9_wV']jcp5JZ&Xl|\\8s;g<{3.u*W-0";
+// char *path_to_backup="/home/catehulu/shift4/XB.Jhu";
+// char *path_to_recycle_bin="/home/catehulu/shift4/oO.k.EOX[)";
+
+char *chiper="qE1~ YMUR2\"`hNIdPzi%^t@(Ao:=CQ,nx4S[7mHFye#aT6+v)DfKL$r?bkOGB>}!9_wV']jcp5JZ&Xl|\\8s;g<{3.u*W-0";
+
+// Fungsi buat sendiri
+
+void decrypt(char* answer)
+{
     int i;
     for(i=0; i<strlen(answer); i++){
         char *pch=strchr(chiper, answer[i]);
@@ -32,8 +42,8 @@ void decrypt(char* answer){
     answer[strlen(answer)] = '\0';
 }
 
-void encrypt(char* answer){
-    char *chiper="qE1~ YMUR2\"`hNIdPzi\%^t@(Ao:=CQ,nx4S[7mHFye#aT6+v)DfKL$r?bkOGB>}!9_wV']jcp5JZ&Xl|\\8s;g<{3.u*W-0";
+void encrypt(char* answer)
+{
     int i;
     for(i=0; i<strlen(answer); i++){
         char *pch=strchr(chiper, answer[i]);
@@ -49,10 +59,48 @@ void encrypt(char* answer){
     answer[strlen(answer)] = '\0';
 }
 
-int check_files(const char *fpath,const char *filename){
-	char owner1[] = "www-data";
+void check_path(char *fpath, char *path)
+{
+    if(strcmp(path,"/") == 0) sprintf(fpath,"%s",dirpath);
+	else sprintf(fpath, "%s%s",dirpath,path);
+    // printf("%s %s\n", fpath, path);
+}
+
+void copy(char *source, char *dest)
+{
+	FILE *fptr1, *fptr2; 
+  
+    // Open one file for reading 
+    fptr1 = fopen(source, "r"); 
+    if (fptr1 == NULL) 
+    { 
+        exit(0); 
+    } 
+  
+    // Open another file for writing 
+    fptr2 = fopen(dest, "w"); 
+    if (fptr2 == NULL) 
+    { 
+        exit(0); 
+    } 
+  
+    // Read contents from file 
+    char c = fgetc(fptr1); 
+    while (c != EOF) 
+    { 
+        fputc(c, fptr2); 
+        c = fgetc(fptr1); 
+    } 
+  
+    fclose(fptr1); 
+    fclose(fptr2); 
+}
+
+int check_files(const char *fpath,const char *filename)
+{
+	char owner1[] = "chipset";
 	char owner2[] = "ic_controller";
-	char group1[] = "www-data";
+	char group1[] = "rusak";
 	struct stat per;
 	struct passwd *user;
 	struct group *group;
@@ -63,7 +111,7 @@ int check_files(const char *fpath,const char *filename){
         if((strcmp(user->pw_name,owner1) == 0 || strcmp(user->pw_name,owner2) == 0 ) 
 				&& strcmp(group->gr_name,group1) == 0
 				&& access(fpath, R_OK) != 0){
-					printf("\n%s\n\n",fpath);
+					// printf("\n%s\n\n",fpath);
 					char output_path[1000];
 					char filemiris[] = "filemiris.txt";
 					// encrypt(filemiris);
@@ -83,15 +131,99 @@ int check_files(const char *fpath,const char *filename){
 	return 1;
 }
 
-//----------------FUNGSI FUSE-----------------------------------------//
+void file_merge(char *path,char *fpath){
+	DIR *dp;
+	struct dirent *de;
+    char filesource[1000];
+    char fildest[1000];
+    
+    strcpy(fildest,fpath);
+    strcat(fildest,"/");
+    strcat(fildest,path);
+
+    printf("\n path %s\n fpath %s\n\n",path,fpath);
+
+    FILE  *fptr2; 
+  
+    fptr2 = fopen(fildest, "a"); 
+    if (fptr2 == NULL) 
+    { 
+        exit(0); 
+    } 
+  
+    dp = opendir(dirpath);
+	if (dp == NULL)
+		return;
+
+	while ((de = readdir(dp)) != NULL) {
+        char check_name[1000];
+        strcpy(check_name,de->d_name);
+        check_name[strlen(check_name) - 4] = '\0';
+        printf("check_name %s\n\n",check_name);
+        if (strcmp(check_name,path) == 0) {
+            FILE *fptr1;
+
+            strcpy(filesource,dirpath);
+            strcat(filesource,"/");
+            strcat(filesource,de->d_name);
+            
+            fptr1 = fopen(filesource, "r"); 
+
+
+            if (fptr1 == NULL) 
+            { 
+                exit(0); 
+            }
+            char c = fgetc(fptr1); 
+            while (c != EOF) 
+            { 
+                fputc(c, fptr2); 
+                c = fgetc(fptr1); 
+            }
+
+            fclose(fptr1); 
+            
+            printf("\nDone for %s\n\n",filesource);
+        }
+	}
+    fclose(fptr2); 
+    closedir(dp);
+
+}
+
+int if_exist(char *path){
+    char video[] = "/Videos";
+    encrypt(video);
+    char fpath[1000];
+    char tmp[1000];
+    strcpy(tmp,path);
+    sprintf(fpath,"%s%s",dirpath,video);
+    DIR *dp;
+    struct dirent *de;
+    tmp[strlen(tmp)-4] = '\0';
+    dp = opendir(fpath);
+    while((de = readdir(dp)) != NULL){
+        // printf("path %s dname %s\n\n",tmp,filename);
+        if (strcmp(tmp,de->d_name) == 0) {
+            closedir(dp);
+            return 1;
+        }
+        
+    }
+    return 0;
+}
+
+// Fungsi fuse
 
 static int xmp_getattr(const char *path, struct stat *stbuf)
 {
-  	int res;
 	char fpath[1000];
-	encrypt(path);
-	sprintf(fpath,"%s%s",dirpath,path);
-	decrypt(path);
+    char temp[1000];
+    strcpy(temp, path);
+    encrypt(temp);
+    check_path(fpath, temp);
+	
+    int res;
 	res = lstat(fpath, stbuf);
 
 	if (res == -1)
@@ -99,23 +231,20 @@ static int xmp_getattr(const char *path, struct stat *stbuf)
 
 	return 0;
 }
+
 static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 		       off_t offset, struct fuse_file_info *fi)
 {
-  	char fpath[1000];
-	encrypt(path);
-	if(strcmp(path,"/") == 0)
-	{
-		path=dirpath;
-		sprintf(fpath,"%s",path);
-	}
-	else sprintf(fpath, "%s%s",dirpath,path);
-    // printf("\n readdir %s \n\n",path);
-	int res = 0;
+    char fpath[1000];
+    char temp[1000];
+    strcpy(temp, path);
+    encrypt(temp);
+    check_path(fpath, temp);
 
-	DIR *dp;
+    int res;
+    
+    DIR *dp;
 	struct dirent *de;
-
 	(void) offset;
 	(void) fi;
 
@@ -134,38 +263,142 @@ static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 		strcpy(check_path,fpath);
 		strcat(check_path,"/");
 		strcat(check_path,newname);
-		printf("\n check path %s | newname %s\n\n",check_path,newname);
+		// printf("\n check path %s | newname %s\n\n",check_path,newname);
 		if (!check_files(check_path,newname)) {
 			continue;
 		}
+        if (if_exist(newname)) {
+            continue;
+        }
+        
         decrypt(newname);
 		res = (filler(buf, newname, &st, 0));
 			if(res!=0) break;
-	}
+    }
 
 	closedir(dp);
 	return 0;
 }
 
+static int xmp_write(const char *path, const char *buf, size_t size,
+			 off_t offset, struct fuse_file_info *fi)
+{
+	char fpath[1000];
+    char temp[1000];
+    char namafile[1000];
+    char path_copy[1000];
+    strcpy(temp, path);
+    encrypt(temp);
+    check_path(fpath, temp);
+
+    char tanggal[30];
+    // Untuk timestamp untuk nama file copy
+    time_t t1;
+    struct tm *t;
+    time(&t1);
+    t = localtime(&t1);
+    sprintf(tanggal, "_%d-%d%d-%d%d_%d%d:%d%d:%d%d", t->tm_year+1900, (t->tm_mon+1)/10, (t->tm_mon+1)%10, t->tm_mday/10, t->tm_mday%10, t->tm_hour/10, t->tm_hour%10, t->tm_min/10, t->tm_min%10, t->tm_sec/10, t->tm_sec%10);
+    encrypt(tanggal);
+
+    char *ptr=strrchr(fpath, '/');
+    char *pch=strrchr(ptr, '.');
+
+    int fd;
+	int res;
+
+	(void) fi;
+	fd = open(path, O_WRONLY);
+	if (fd == -1)
+		return -errno;
+
+	res = pwrite(fd, buf, size, offset);
+	if (res == -1)
+		res = -errno;
+
+	close(fd);
+    return res; 
+}
+
+static int xmp_truncate(const char *path, off_t size)
+{
+    char fpath[1000];
+    char temp[1000];
+    strcpy(temp, path);
+    encrypt(temp);
+    check_path(fpath, temp);
+
+    int res;
+    
+    res = truncate(fpath, size);
+    if(res == -1)
+        return -errno;
+
+    return 0;
+}
+
+static int xmp_utimens(const char *path, const struct timespec ts[2])
+{
+    char fpath[1000];
+    char temp[1000];
+    strcpy(temp, path);
+    encrypt(temp);
+    check_path(fpath, temp);
+
+	int res;
+	struct timeval tv[2];
+
+	tv[0].tv_sec = ts[0].tv_sec;
+	tv[0].tv_usec = ts[0].tv_nsec / 1000;
+	tv[1].tv_sec = ts[1].tv_sec;
+	tv[1].tv_usec = ts[1].tv_nsec / 1000;
+
+	res = utimes(fpath, tv);
+	if (res == -1)
+		return -errno;
+
+	return 0;
+}
+
+static int xmp_create(const char* path, mode_t mode, struct fuse_file_info* fi) 
+{
+    char temp[1000];
+
+    strcpy(temp, path);
+    
+    if (strstr(temp,"/YOUTUBER")) 
+    {
+		mode = 0640;
+		strcat(temp, ".iz1");
+        strcat(path, ".iz1");
+    }
+
+    char fpath[1000];
+    encrypt(temp);
+    check_path(fpath, temp);
+
+    (void) fi;
+
+    int res;
+    res = creat(fpath, mode);
+    if(res == -1)
+	return -errno;
+
+    close(res);
+
+    return 0;
+}
+
 static int xmp_read(const char *path, char *buf, size_t size, off_t offset,
 		    struct fuse_file_info *fi)
 {
-  	char fpath[1000];
-	char realname[1000];
-	strcpy(realname,path);
-    encrypt(realname);
-    // printf("\n realname %s\n\n",realname);
-	if(strcmp(path,"/") == 0)
-	{
-		path=dirpath;
-		sprintf(fpath,"%s",path);
-	}
-	else {
-		sprintf(fpath, "%s%s",dirpath,realname);
-	}
-    // printf("\n fpath %s\n\n",fpath);
-	int res = 0;
-  	int fd = 0 ;
+    char fpath[1000];
+    char temp[1000];
+    strcpy(temp, path);
+    encrypt(temp);
+    check_path(fpath, temp);
+
+	int fd;
+	int res;
 
 	(void) fi;
 	fd = open(fpath, O_RDONLY);
@@ -180,94 +413,17 @@ static int xmp_read(const char *path, char *buf, size_t size, off_t offset,
 	return res;
 }
 
-static int xmp_create(const char *path, mode_t mode, struct fuse_file_info *fi)
+static int xmp_unlink(const char *path)
 {
-	int fd;
-	char fpath[1000];
-	char realname[1000];
-	if (strncmp(path,"/YOUTUBER",9) == 0) {
-		mode = 0640;
-		strcat(path,".iz1");
-	}
-	encrypt(path);
-	sprintf(fpath, "%s%s",dirpath,path);
-	decrypt(path);
-	fd = open(fpath, fi->flags, mode);
-	if (fd == -1)
-		return -errno;
+    char fpath[1000];
+    char temp[1000];
+    strcpy(temp, path);
+    encrypt(temp);
+    check_path(fpath, temp);
 
-	fi->fh = fd;
-	return 0;
-}
-
-static int xmp_write(const char *path, const char *buf, size_t size,
-		     off_t offset, struct fuse_file_info *fi)
-{
-	char fpath[1000];
-	char realname[1000];
-	strcpy(realname,path);
-    encrypt(realname);
-    // printf("\n realname %s\n\n",realname);
-	if(strcmp(path,"/") == 0)
-	{
-		path=dirpath;
-		sprintf(fpath,"%s",path);
-	}
-	else {
-		sprintf(fpath, "%s%s",dirpath,realname);
-	}
-    // printf("\n fpath %s\n\n",fpath);
-	int res = 0;
-  	int fd = 0 ;
-
-	(void) fi;
-	fd = open(fpath, O_WRONLY);
-	if (fd == -1)
-		return -errno;
-
-	res = pwrite(fd, buf, size, offset);
-	if (res == -1)
-		res = -errno;
-
-	close(fd);
-	return res;
-}
-
-static int xmp_mknod(const char *path, mode_t mode, dev_t rdev)
-{
 	int res;
-	char fpath[1000];
-	char realname[1000];
-	encrypt(path);
-	sprintf(fpath, "%s%s",dirpath,path);
-	decrypt(path);
 
-	if (S_ISFIFO(mode))
-		res = mkfifo(fpath, mode);
-	else
-		res = mknod(fpath, mode, rdev);
-	if (res == -1)
-		return -errno;
-
-	return 0;
-}
-
-static int xmp_utimens(const char *path, const struct timespec ts[2])
-{
-	int res;
-	struct timeval tv[2];
-	char fpath[1000];
-	char realname[1000];
-	encrypt(path);
-	sprintf(fpath, "%s%s",dirpath,path);
-	decrypt(path);
-
-	tv[0].tv_sec = ts[0].tv_sec;
-	tv[0].tv_usec = ts[0].tv_nsec / 1000;
-	tv[1].tv_sec = ts[1].tv_sec;
-	tv[1].tv_usec = ts[1].tv_nsec / 1000;
-
-	res = utimes(fpath, tv);
+	res = unlink(path);
 	if (res == -1)
 		return -errno;
 
@@ -276,19 +432,19 @@ static int xmp_utimens(const char *path, const struct timespec ts[2])
 
 static int xmp_mkdir(const char *path, mode_t mode)
 {
-	int res;
-	char fpath[1000];
-
-	if (strncmp(path,"/YOUTUBER",9) == 0 && strlen(path) != 9) {
+    if (strncmp(path,"/YOUTUBER",9) == 0 && strlen(path) != 9) {
 		mode = 0750;
-	}
-	encrypt(path);
-	sprintf(fpath, "%s%s",dirpath,path);
-	decrypt(path);
+    }
 
-	// printf("\n makedir %s \n\n",fpath);
+    char fpath[1000];
+    char temp[1000];
+    strcpy(temp, path);
+    encrypt(temp);
+    check_path(fpath, temp);
 
-	res = mkdir(fpath, mode);
+	int res;
+
+	res = mkdir(path, mode);
 	if (res == -1)
 		return -errno;
 
@@ -297,18 +453,11 @@ static int xmp_mkdir(const char *path, mode_t mode)
 
 static int xmp_chmod(const char *path, mode_t mode)
 {
-	int res;
-	char fpath[1000];
-	char realname[1000];
-	int len = strlen(path);
-	
-	const char *ext = &path[len-4];
+    int len = strlen(path);
+    const char *ext = &path[len-4];
 
-	// printf("\nchmod path %s ext %s\n\n",path,ext);
-
-	if (len >= 4 && strcmp(ext,".iz1") == 0) {
+    if (len >= 4 && strcmp(ext,".iz1") == 0) {
 		pid_t child_id;
-		int show_error;
 		child_id = fork();
 		if (child_id == 0) {
 			char *param_alert[] = {"zenity","--error","--title=\"Pesan error\"","--text=\"File ekstensi iz1 tidak boleh diubah permissionnya.\n\"",NULL};
@@ -316,32 +465,101 @@ static int xmp_chmod(const char *path, mode_t mode)
 			return 0;
 		}
 		return 0;
-	}
-	
-	
-	encrypt(path);
-	sprintf(fpath, "%s%s",dirpath,path);
-	decrypt(path);
-	res = chmod(fpath, mode);
+    }
+
+    char fpath[1000];
+    char temp[1000];
+    strcpy(temp, path);
+    encrypt(temp);
+    check_path(fpath, temp);
+
+	int res;
+
+	res = chmod(path, mode);
 	if (res == -1)
 		return -errno;
 
 	return 0;
 }
 
+void* xmp_init(struct fuse_conn_info *conn){
+	char path[100] = "Videos";
+	char fpath[1000];
+	DIR *dp;
+	struct dirent *de;
+	encrypt(path);
+	sprintf(fpath,"%s/%s",dirpath,path);
+	mkdir(fpath,0775);
+
+    dp = opendir(dirpath);
+	if (dp == NULL)
+		return;
+
+	while ((de = readdir(dp)) != NULL) {
+        char filename[1000];
+        strcpy(filename,de->d_name);
+        decrypt(filename);
+        int len = strlen(filename);
+        const char *ext = &filename[len-4];
+        if (strcmp(".000",ext) == 0) {
+            pid_t child_id;
+            child_id = fork();
+            encrypt(filename);
+            if (child_id == 0) {
+        		char merged_file[1000];
+                strncpy(merged_file,filename,len-4);
+                file_merge(merged_file,fpath);
+                exit(0);
+            }
+            
+        }
+
+	}
+
+}
+
+void xmp_destroy(void* private_data){
+	DIR *dp;
+	struct dirent *de;
+
+	char path[100] = "Videos";
+	char fpath[1000];
+	encrypt(path);
+	sprintf(fpath,"%s/%s",dirpath,path);
+	
+	dp = opendir(fpath);
+	if (dp == NULL)
+		return;
+
+	while ((de = readdir(dp)) != NULL) {
+        int len = strlen(de->d_name);
+        const char *number = &path[len-4];
+		char remove_path[1000];
+		strcpy(remove_path,fpath);
+		strcat(remove_path,"/");
+		strcat(remove_path,de->d_name);
+		remove(remove_path);
+	}
+
+	rmdir(fpath);
+
+	closedir(dp);
+}
+
 static struct fuse_operations xmp_oper = {
-	.getattr	= xmp_getattr,
-	.readdir	= xmp_readdir,
-	.read		= xmp_read,
-	.create		= xmp_create,
-	.write		= xmp_write,
-	.mknod		= xmp_mknod,
-	.utimens	= xmp_utimens,
-	.mkdir		= xmp_mkdir,
-	.chmod		= xmp_chmod,
+    .getattr	= xmp_getattr,
+    .readdir	= xmp_readdir,
+    .write      = xmp_write,
+    .truncate   = xmp_truncate,
+    .utimens    = xmp_utimens,
+    .create     = xmp_create,
+    .read       = xmp_read,
+    .unlink     = xmp_unlink,
+    .mkdir      = xmp_mkdir,
+    .chmod      = xmp_chmod,
+    .init       = xmp_init,
+    .destroy    = xmp_destroy,
 };
-
-
 
 int main(int argc, char *argv[])
 {
