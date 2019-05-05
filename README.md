@@ -9,10 +9,14 @@ Kedua fungsi akan berjalan dengan mencari karakter yang ada di chiper lalu menam
 ### Nomor 3
 
 Perubahan ada pada fungsi readdir ketika menemukan persyaratan yang ditentukan maka masukkan ke file yang diminta.
+Jika memenuhi, maka file akan dihapus dan di log di filemiris.txt
 
 ### Nomor 4
 
 Perubahan fungsi mkdir, utimens, create, chmod.
+
+Setiap kali dilakukan mkdir, dicek apakah ada dalam folder youtuber. Jika iya, maka akan dirubah permissionnya.
+Pada create dicek apakah dalam folder youtuber. Jika iya, maka akan ditambah .izi diakhir file.
 
 ### Nomor 5
 
