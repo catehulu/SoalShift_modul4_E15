@@ -6,6 +6,10 @@ Buat fungsi encrypt dan decrypt, nantinya setiap fungsi akan encrypt path yang a
 
 Kedua fungsi akan berjalan dengan mencari karakter yang ada di chiper lalu menambahkannya dengan key yang ada.
 
+## Nomor 2
+
+Untuk nomor 2 dicek, apakah akhirnya 000, jika iya, maka akan dimulai proses penggabungan. Proses terjadi pada fuse init dan fuse destroy.
+
 ### Nomor 3
 
 Perubahan ada pada fungsi readdir ketika menemukan persyaratan yang ditentukan maka masukkan ke file yang diminta.
